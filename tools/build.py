@@ -66,6 +66,9 @@ def header(current):
  <a href="{HOME}">Startseite</a>{links}{link('tel:'+PHONE,icon('phone')+'01590 1254030','button')}<p class="small">Rote Wiese 2 · 97267 Himmelstadt<br>Täglich 11–20 Uhr</p>
  </nav>'''
 
+def credit():
+ return '<p class="site-credit">Mit ♥ erstellt von <a href="https://kernseite.com" title="Webdesign Agentur Würzburg" target="_blank" rel="noopener">KERNSEITE</a> aus Würzburg</p>'
+
 def footer():
  return f'''<footer class="site-footer"><div class="wrap">
  <div class="footer-top">
@@ -74,7 +77,8 @@ def footer():
  <div><h2>Direkt zu uns</h2><ul><li>{link('tel:'+PHONE,'01590 1254030')}</li><li>{link('mailto:'+EMAIL,EMAIL)}</li><li>{link('kontakt.html','Kontakt & Anfahrt')}</li></ul></div>
  <div><h2>Mehr von KAYA</h2><ul><li>{link(INSTAGRAM,'Instagram '+icon('external'),external=True)}</li><li>{link(TIKTOK,'TikTok '+icon('external'),external=True)}</li><li>{link(REVIEWS,'Google-Bewertungen '+icon('external'),external=True)}</li></ul></div>
  </div><div class="footer-bottom"><span>© 2026 KAYA Döner · Mahmoud Zakrieah</span><div>{link('impressum.html','Impressum')}{link('datenschutz.html','Datenschutz')}{link('bildnachweise.html','Bildnachweise')}{link('barrierefreiheit.html','Barrierefreiheit')}<button class="js-only" data-privacy-settings>Datenschutz-Einstellungen</button></div></div>
- <div class="giant-brand" aria-hidden="true"><img src="assets/brand/kaya-wordmark-white.svg" width="542" height="150" alt="KAYA Döner" loading="lazy"></div></div></footer>
+ <div class="giant-brand" aria-hidden="true"><img src="assets/brand/kaya-wordmark-white.svg" width="542" height="150" alt="KAYA Döner" loading="lazy"></div>
+ {credit()}</div></footer>
  <nav class="mobile-bar" aria-label="Schnellzugriff">{link('speisekarte.html','Speisekarte '+icon('arrow'),'button ink')}{link('tel:'+PHONE,icon('phone')+'Anrufen','button')}</nav>
  <details class="accessibility js-only"><summary aria-label="Lesbarkeit einstellen">Aa</summary><div class="access-panel"><h2>Lesbarkeit</h2><div class="settings-row"><span>Schrift <span id="font-level" aria-live="polite">100 %</span></span><div><button id="font-minus" aria-label="Schrift verkleinern">A−</button> <button id="font-plus" aria-label="Schrift vergrößern">A+</button></div></div><div class="settings-row"><span>Mehr Kontrast</span><button id="contrast-toggle" aria-pressed="false">Aus</button></div><button class="reset" id="reading-reset">Zurücksetzen</button></div></details>
  <dialog class="privacy-dialog" id="privacy-dialog" aria-labelledby="privacy-title" aria-describedby="privacy-description"><h2 id="privacy-title">Deine Privatsphäre.</h2><p id="privacy-description">Wir verwenden keine Analyse- oder Marketingdienste. Die optionale Google-Karte wird nur mit deiner Einwilligung geladen. Dabei kann Google deine IP-Adresse und Geräteinformationen verarbeiten, auch in den USA. Mehr dazu in unserer <a href="datenschutz.html#karte">Datenschutzerklärung</a>.</p><p class="small" data-consent-status>Google Maps ist deaktiviert.</p><div class="actions"><button class="button ink" id="privacy-decline">Ohne Google Maps</button><button class="button" id="privacy-accept">Google Maps erlauben</button></div><button id="privacy-close" class="dialog-close">Schließen</button></dialog>'''

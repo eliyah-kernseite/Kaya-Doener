@@ -14,6 +14,15 @@ AddDefaultCharset UTF-8
 # Eigene Fehlerseite. Apache liefert sie mit dem echten Status 404 aus.
 ErrorDocument 404 /404.html
 
+# HTML-Seiten bei jedem Aufruf beim Server pruefen lassen, damit Besucher nach
+# einer Bereitstellung sofort die neue Fassung sehen statt einer Kopie aus dem
+# Browser-Cache. Unveraenderte Seiten kommen weiter schnell per 304 zurueck.
+<IfModule mod_headers.c>
+  <FilesMatch "\.html?$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
 # Verzeichnisindex, damit "/" die Startseite ausliefert.
 <IfModule mod_dir.c>
   DirectoryIndex index.html

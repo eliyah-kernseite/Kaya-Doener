@@ -120,7 +120,7 @@
     settingsTrigger = button;
     displayConsent();
     if (dialog && typeof dialog.showModal === 'function') dialog.showModal();
-    else location.href = 'datenschutz.html#karte';
+    else location.href = $('#privacy-description a')?.href || 'datenschutz.html#karte';
   }));
   $('#privacy-accept')?.addEventListener('click', () => chooseMaps('yes'));
   $('#privacy-decline')?.addEventListener('click', () => chooseMaps('no'));

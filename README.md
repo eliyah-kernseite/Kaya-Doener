@@ -95,6 +95,7 @@ node tools/verify-behavior.cjs
 | --- | --- | --- |
 | Startseiten-Links | `index.html` (relativ) | `/` |
 | Wochenangebote | `index.html#angebote` | `/#angebote` |
+| Unterseiten-Links | `kontakt.html` (relativ) | `/kontakt` (saubere Adresse) |
 | Indexierung | `noindex` auf allen Seiten | drei Hauptseiten indexierbar |
 | Sitemap | leer | drei Hauptseiten |
 | Hosting im Datenschutz | GitHub Pages | Hostinger |
@@ -110,8 +111,11 @@ Seite im Wurzelverzeichnis, dort ist `/` die richtige Adresse.
 
 Die `.htaccess` für Hostinger steht als Vorlage in `tools/build.py` und wird nur
 im Produktionsmodus geschrieben. Sie regelt: `AddDefaultCharset UTF-8`,
-`ErrorDocument 404 /404.html`, `DirectoryIndex index.html` sowie drei
-301-Weiterleitungen (http auf https, www auf ohne www, `/index.html` auf `/`).
+`ErrorDocument 404 /404.html`, `DirectoryIndex index.html`, fünf
+301-Weiterleitungen (http auf https, www auf ohne www, `/index.html` auf `/`,
+`/kontakt.html` auf `/kontakt`, `/kontakt/` auf `/kontakt`) und die interne
+Zuordnung sauberer Adressen wie `/kontakt` auf die Datei `kontakt.html`.
+Canonicals, Sitemap, `og:url` und strukturierte Daten nennen immer die saubere Adresse.
 Alle Rewrite-Regeln stehen in einem `<IfModule>`-Block, damit eine abweichende
 Serverkonfiguration keinen Fehler 500 auslöst.
 

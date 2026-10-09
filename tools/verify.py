@@ -59,6 +59,11 @@ for name,page in pages.items():
    require(not u.path.startswith('/'),f'{name}: root-relative link breaks project Pages: {ref}')
   if u.path.startswith('/'):
    require(PRODUCTION,f'{name}: absolute path only allowed in production: {ref}')
+   # Saubere Adressen: / ist die Startseite, /kontakt die Datei kontakt.html.
+   clean=unquote(u.path).strip('/')
+   file='index.html' if not clean else clean+'.html'
+   require(not clean.endswith('.html') and file in pages,f'{name}: clean URL has no page: {ref}')
+   if u.fragment and file in pages:require(unquote(u.fragment) in pages[file].ids,f'{name}: missing fragment {ref}')
    continue
   target=(OUT/unquote(u.path)) if u.path else OUT/name
   require(target.is_file(),f'{name}: missing local resource {ref}')
@@ -103,7 +108,7 @@ REGULAR=['index.html','speisekarte.html','kontakt.html','impressum.html','datens
 for name in REGULAR:
  require(name in pages,f'missing page {name}')
  if name in pages:
-  require('barrierefreiheit.html' in pages[name].refs,f'{name}: footer is missing the accessibility link')
+  require(('/barrierefreiheit' if PRODUCTION else 'barrierefreiheit.html') in pages[name].refs,f'{name}: footer is missing the accessibility link')
 acc=pages.get('barrierefreiheit.html')
 if acc:
  text=(OUT/'barrierefreiheit.html').read_text()
@@ -120,6 +125,8 @@ for name in REGULAR:
  if PRODUCTION:
   require('href="index.html"' not in body,f'{name}: production must link the home page as /')
   require('href="index.html#angebote"' not in body,f'{name}: production must link offers as /#angebote')
+  old=[r for r in pages[name].refs if not urlsplit(r).scheme and urlsplit(r).path.endswith('.html')]
+  require(not old,f'{name}: production must use clean URLs without .html: {old}')
  else:
   require('href="/"' not in body,f'{name}: preview must keep the relative home link')
 idpage=[i for g in pages['index.html'].json for i in g.get('@graph',[]) if i.get('@type')=='WebPage']
@@ -146,10 +153,18 @@ if PRODUCTION:
     ('X-Forwarded-Proto','proxy-terminated TLS check'),
     ('^www\\.','www to non-www redirect'),
     ('index\\.html[\\s?]','index.html to slash redirect'),
+    ('\\.html[\\s?] [NC]\n  RewriteCond %1 !^404$','.html to clean URL redirect'),
+    ('RewriteCond %{REQUEST_FILENAME}.html -f','clean URL to .html file mapping'),
     ('R=301','permanent redirects')]:
    require(needle in h,f'.htaccess is missing {label}')
   require('<IfModule mod_rewrite.c>' in h,'.htaccess must guard rewrite rules with IfModule')
-  require(h.count('[R=301')==3,f'.htaccess should define exactly three 301 rules, found {h.count("[R=301")}')
+  require(h.count('[R=301')==5,f'.htaccess should define exactly five 301 rules, found {h.count("[R=301")}')
+ for loc in ET.parse(OUT/'sitemap.xml').getroot().iter('{http://www.sitemaps.org/schemas/sitemap/0.9}loc'):
+  require(not loc.text.endswith('.html'),f'sitemap must list clean URLs: {loc.text}')
+ for name,page in pages.items():
+  if name=='404.html':continue
+  can=page.meta.get('og:url') or ''
+  require(not can.endswith('.html'),f'{name}: og:url/canonical must be a clean URL: {can}')
 else:
  require(not ht.exists(),'preview must not ship an Apache configuration')
 

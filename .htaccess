@@ -38,13 +38,31 @@ ErrorDocument 404 /404.html
   RewriteCond %{THE_REQUEST} \s/+(([^\s?]*/)?)index\.html[\s?] [NC]
   RewriteRule ^ https://kaya-doener-himmelstadt.de/%1 [R=301,L,NE]
 
-  # 2) http -> https, zugleich ohne www.
+  # 2) Alte Adressen mit .html -> saubere Adresse, z. B. /kontakt.html -> /kontakt.
+  #    Ebenfalls ueber THE_REQUEST, damit die interne Umschreibung (6) keine
+  #    Schleife ausloest. Die Fehlerseite 404.html bleibt unberuehrt.
+  RewriteCond %{THE_REQUEST} \s/+([^\s?/]+)\.html[\s?] [NC]
+  RewriteCond %1 !^404$
+  RewriteRule ^ https://kaya-doener-himmelstadt.de/%1 [R=301,L,NE]
+
+  # 3) Schraegstrich am Ende entfernen, z. B. /kontakt/ -> /kontakt.
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^([^/]+)/$ https://kaya-doener-himmelstadt.de/$1 [R=301,L,NE]
+
+  # 4) http -> https, zugleich ohne www.
   #    Zweite Bedingung fuer den Fall, dass TLS vor dem Webserver endet.
   RewriteCond %{HTTPS} !=on
   RewriteCond %{HTTP:X-Forwarded-Proto} !=https
   RewriteRule ^ https://kaya-doener-himmelstadt.de%{REQUEST_URI} [R=301,L,NE]
 
-  # 3) www. -> ohne www. (wenn bereits https)
+  # 5) www. -> ohne www. (wenn bereits https)
   RewriteCond %{HTTP_HOST} ^www\. [NC]
   RewriteRule ^ https://kaya-doener-himmelstadt.de%{REQUEST_URI} [R=301,L,NE]
+
+  # 6) Saubere Adresse intern auf die Datei abbilden: /kontakt liefert kontakt.html.
+  #    Kein Redirect, die Adresszeile bleibt /kontakt.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^([^/.]+)$ $1.html [L]
 </IfModule>

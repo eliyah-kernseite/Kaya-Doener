@@ -6,6 +6,7 @@ from pathlib import Path
 from html import escape as e
 import hashlib
 import json
+import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,6 +23,16 @@ BASE = 'https://kaya-doener-himmelstadt.de/'
 # deshalb bleibt es hier beim relativen 'index.html'.
 HOME = '/' if PRODUCTION else 'index.html'
 HOME_ANGEBOTE = HOME + '#angebote'
+# Saubere Adressen: Auf Hostinger heissen die Unterseiten /speisekarte statt
+# speisekarte.html. Die .htaccess liefert intern die .html-Datei aus und leitet
+# alte .html-Adressen per 301 um. Die GitHub-Pages-Vorschau kennt keine
+# Rewrites und behaelt deshalb die Dateinamen.
+SUBPAGES = ['speisekarte','kontakt','impressum','datenschutz','bildnachweise','barrierefreiheit']
+def clean(name):
+ return '' if name=='index.html' else name.removesuffix('.html')
+def clean_links(html):
+ return re.sub(r'href="('+'|'.join(SUBPAGES)+r')\.html(?=[#"])', r'href="/\1', html) if PRODUCTION else html
+MENU_URL = '/speisekarte' if PRODUCTION else 'speisekarte.html'
 PHONE = '+4915901254030'
 EMAIL = 'iammahmoud@outlook.de'
 MAPS = 'https://www.google.com/maps/search/?api=1&query=Rote+Wiese+2%2C+97267+Himmelstadt'
@@ -162,10 +173,10 @@ def accessibility():
  return legal_wrapper('Barriere<wbr>freiheit.','Barrierefreiheit',body,[('anspruch','Anspruch'),('einordnung','Rechtliche Einordnung'),('hilfen','Vorhandene Hilfen'),('pruefung','Durchgeführte Prüfungen'),('grenzen','Einschränkungen'),('melden','Barriere melden')])
 
 def schema(page,title):
- restaurant={'@type':'Restaurant','@id':BASE+'#restaurant','name':'KAYA Döner','alternateName':'KAYA Döner Himmelstadt','url':BASE,'telephone':PHONE,'email':EMAIL,'priceRange':'€','currenciesAccepted':'EUR','servesCuisine':['Türkisch','Döner','Vegetarisch'],'address':{'@type':'PostalAddress','streetAddress':'Rote Wiese 2','postalCode':'97267','addressLocality':'Himmelstadt','addressRegion':'Bayern','addressCountry':'DE'},'openingHoursSpecification':[{'@type':'OpeningHoursSpecification','dayOfWeek':['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],'opens':'11:00','closes':'20:00'}],'hasMenu':BASE+'speisekarte.html','hasMap':MAPS,'logo':BASE+'assets/brand/kaya-horizontal-dark.svg','sameAs':[INSTAGRAM,TIKTOK],'description':'Döner, Dürüm, Falafel, Halloumi und hausgemachte Soßen in Himmelstadt. Vor Ort essen oder abholen.'}
- graph=[{'@type':'WebSite','@id':BASE+'#website','name':'KAYA Döner Himmelstadt','url':BASE,'inLanguage':'de-DE'},restaurant,{'@type':'WebPage','@id':(BASE+'#webpage') if page=='index.html' else (BASE+page+'#page'),'url':BASE+('' if page=='index.html' else page),'name':title,'inLanguage':'de-DE','isPartOf':{'@id':BASE+'#website'},'about':{'@id':BASE+'#restaurant'}}]
+ restaurant={'@type':'Restaurant','@id':BASE+'#restaurant','name':'KAYA Döner','alternateName':'KAYA Döner Himmelstadt','url':BASE,'telephone':PHONE,'email':EMAIL,'priceRange':'€','currenciesAccepted':'EUR','servesCuisine':['Türkisch','Döner','Vegetarisch'],'address':{'@type':'PostalAddress','streetAddress':'Rote Wiese 2','postalCode':'97267','addressLocality':'Himmelstadt','addressRegion':'Bayern','addressCountry':'DE'},'openingHoursSpecification':[{'@type':'OpeningHoursSpecification','dayOfWeek':['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],'opens':'11:00','closes':'20:00'}],'hasMenu':BASE+'speisekarte','hasMap':MAPS,'logo':BASE+'assets/brand/kaya-horizontal-dark.svg','sameAs':[INSTAGRAM,TIKTOK],'description':'Döner, Dürüm, Falafel, Halloumi und hausgemachte Soßen in Himmelstadt. Vor Ort essen oder abholen.'}
+ graph=[{'@type':'WebSite','@id':BASE+'#website','name':'KAYA Döner Himmelstadt','url':BASE,'inLanguage':'de-DE'},restaurant,{'@type':'WebPage','@id':(BASE+'#webpage') if page=='index.html' else (BASE+clean(page)+'#page'),'url':BASE+clean(page),'name':title,'inLanguage':'de-DE','isPartOf':{'@id':BASE+'#website'},'about':{'@id':BASE+'#restaurant'}}]
  if page!='index.html':
-  graph.append({'@type':'BreadcrumbList','itemListElement':[{'@type':'ListItem','position':1,'name':'Startseite','item':BASE},{'@type':'ListItem','position':2,'name':title.split('|')[0].strip(),'item':BASE+page}]})
+  graph.append({'@type':'BreadcrumbList','itemListElement':[{'@type':'ListItem','position':1,'name':'Startseite','item':BASE},{'@type':'ListItem','position':2,'name':title.split('|')[0].strip(),'item':BASE+clean(page)}]})
  if page=='speisekarte.html':
   sections=[]
   for c in DATA['categories']:
@@ -176,7 +187,7 @@ def schema(page,title):
     if offerprices: item['offers']=[{'@type':'Offer','name':label or i['name'],'price':p.replace(',','.'),'priceCurrency':'EUR'} for label,p in offerprices]
     items.append(item)
    sections.append({'@type':'MenuSection','name':c['title'],'hasMenuItem':items})
-  graph.append({'@type':'Menu','@id':BASE+'speisekarte.html#menu','name':'Speisekarte KAYA Döner Himmelstadt','hasMenuSection':sections,'inLanguage':'de-DE'})
+  graph.append({'@type':'Menu','@id':BASE+'speisekarte#menu','name':'Speisekarte KAYA Döner Himmelstadt','hasMenuSection':sections,'inLanguage':'de-DE'})
  if page=='index.html': graph.append({'@type':'FAQPage','mainEntity':[{'@type':'Question','name':q,'acceptedAnswer':{'@type':'Answer','text':a}} for q,a in FAQ]})
  return json.dumps({'@context':'https://schema.org','@graph':graph},ensure_ascii=False,separators=(',',':')).replace('</','<\\/')
 
@@ -191,18 +202,18 @@ PAGES={
 }
 
 for name,(title,description,render) in PAGES.items():
- canonical=BASE+('' if name=='index.html' else name)
+ canonical=BASE+clean(name)
  robots='index, follow, max-image-preview:large' if PRODUCTION and name in ['index.html','speisekarte.html','kontakt.html'] else 'noindex, follow'
  html=f'''<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>{e(title)}</title><meta name="description" content="{e(description,quote=True)}"><meta name="robots" content="{robots}"><meta name="theme-color" content="#1c1d19"><meta name="referrer" content="strict-origin-when-cross-origin"><link rel="canonical" href="{canonical}"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="icon" href="favicon.ico" sizes="any"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest"><link rel="preload" href="assets/fonts/barlow-condensed-800.woff" as="font" type="font/woff" crossorigin><link rel="stylesheet" href="assets/site.css?v={ASSET_VERSION}"><script src="assets/site.js?v={ASSET_VERSION}" defer></script><meta property="og:type" content="website"><meta property="og:locale" content="de_DE"><meta property="og:site_name" content="KAYA Döner Himmelstadt"><meta property="og:title" content="{e(title,quote=True)}"><meta property="og:description" content="{e(description,quote=True)}"><meta property="og:url" content="{canonical}"><meta property="og:image" content="{BASE}og-kaya-doener.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="KAYA Döner – frischer Döner in Himmelstadt"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{e(title,quote=True)}"><meta name="twitter:description" content="{e(description,quote=True)}"><meta name="twitter:image" content="{BASE}og-kaya-doener.jpg"><script type="application/ld+json">{schema(name,title)}</script><noscript><style>.js-only{{display:none!important}}@media(max-width:650px){{.site-header{{height:auto;position:relative}}.nav-row{{padding-block:1rem;flex-wrap:wrap}}.nav{{display:flex;flex-wrap:wrap;gap:1rem}}.nav .button{{display:none}}.nav a{{font-size:.8125rem}}}}</style></noscript></head><body>{header(name)}<main id="main" tabindex="-1">{render()}</main>{footer()}</body></html>'''
- (OUT/name).write_text(html,encoding='utf-8')
+ (OUT/name).write_text(clean_links(html),encoding='utf-8')
 
 errorbody='<section class="error-page wrap"><span class="error-number" aria-hidden="true">404</span><h1>Hier gibt’s<br>leider nichts.</h1><p>Die gesuchte Seite gibt es nicht. Aber etwas Gutes zu essen schon.</p><div class="actions"><a class="button" href="index.html">Zur Startseite</a><a class="button ink" href="speisekarte.html">Zur Speisekarte</a></div></section>'
 notfound='<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,follow"><title>Seite nicht gefunden | KAYA Döner</title><link rel="icon" href="favicon.svg"><link rel="stylesheet" href="assets/site.css"></head><body>'+header('404.html')+'<main id="main">'+errorbody+'</main>'+footer()+'<script src="assets/site.js" defer></script></body></html>'
 brand_inline=(OUT/'assets/brand/kaya-horizontal-light.svg').read_text()
-notfound=f'''<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,follow"><title>Seite nicht gefunden | KAYA Döner</title><style>*{{box-sizing:border-box}}body{{margin:0;background:#1c1d19;color:#f6f3eb;font:16px/1.65 Arial,sans-serif}}main{{max-width:700px;margin:auto;padding:50px 24px;text-align:center}}.logo{{display:inline-block}}.logo svg{{width:235px;height:auto}}.number{{display:block;font:bold clamp(100px,25vw,200px)/1 Impact,'Arial Narrow',sans-serif;color:#ff6751;margin:50px 0 20px}}h1{{font-size:clamp(30px,7vw,50px);line-height:1.1}}.actions{{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:30px}}.button{{display:inline-block;background:#c93627;color:#fff;text-decoration:none;padding:15px 22px;font-weight:bold;border:1px solid #c93627}}.button.secondary{{background:transparent;border-color:#f6f3eb}}a:focus-visible{{outline:3px solid #ff6751;outline-offset:5px}}.site-credit{{margin:60px 0 0;font-size:12.5px;line-height:1.5;color:#a3a698}}.site-credit a{{color:inherit;text-decoration:none;font-weight:bold;letter-spacing:.04em}}.site-credit a:hover,.site-credit a:focus-visible{{color:#f6f3eb;text-decoration:underline}}</style></head><body><main><a class="logo" href="{BASE}" data-home aria-label="KAYA Döner – Startseite">{brand_inline}</a><span class="number" aria-hidden="true">404</span><h1>Hier gibt’s leider nichts.</h1><p>Die gesuchte Seite gibt es nicht.<br>Aber etwas Gutes zu essen schon.</p><div class="actions"><a class="button" href="{BASE}" data-home>Zur Startseite</a><a class="button secondary" href="{BASE}speisekarte.html" data-menu>Zur Speisekarte</a></div>{credit()}</main><script>(()=>{{const segments=location.pathname.split('/').filter(Boolean);const base=location.hostname.endsWith('.github.io')&&segments.length?'/'+segments[0]+'/':'/';document.querySelectorAll('[data-home]').forEach(a=>a.href=base);document.querySelectorAll('[data-menu]').forEach(a=>a.href=base+'speisekarte.html');}})();</script></body></html>'''
+notfound=f'''<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,follow"><title>Seite nicht gefunden | KAYA Döner</title><style>*{{box-sizing:border-box}}body{{margin:0;background:#1c1d19;color:#f6f3eb;font:16px/1.65 Arial,sans-serif}}main{{max-width:700px;margin:auto;padding:50px 24px;text-align:center}}.logo{{display:inline-block}}.logo svg{{width:235px;height:auto}}.number{{display:block;font:bold clamp(100px,25vw,200px)/1 Impact,'Arial Narrow',sans-serif;color:#ff6751;margin:50px 0 20px}}h1{{font-size:clamp(30px,7vw,50px);line-height:1.1}}.actions{{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:30px}}.button{{display:inline-block;background:#c93627;color:#fff;text-decoration:none;padding:15px 22px;font-weight:bold;border:1px solid #c93627}}.button.secondary{{background:transparent;border-color:#f6f3eb}}a:focus-visible{{outline:3px solid #ff6751;outline-offset:5px}}.site-credit{{margin:60px 0 0;font-size:12.5px;line-height:1.5;color:#a3a698}}.site-credit a{{color:inherit;text-decoration:none;font-weight:bold;letter-spacing:.04em}}.site-credit a:hover,.site-credit a:focus-visible{{color:#f6f3eb;text-decoration:underline}}</style></head><body><main><a class="logo" href="{BASE}" data-home aria-label="KAYA Döner – Startseite">{brand_inline}</a><span class="number" aria-hidden="true">404</span><h1>Hier gibt’s leider nichts.</h1><p>Die gesuchte Seite gibt es nicht.<br>Aber etwas Gutes zu essen schon.</p><div class="actions"><a class="button" href="{BASE}" data-home>Zur Startseite</a><a class="button secondary" href="{BASE}speisekarte" data-menu>Zur Speisekarte</a></div>{credit()}</main><script>(()=>{{const segments=location.pathname.split('/').filter(Boolean);const base=location.hostname.endsWith('.github.io')&&segments.length?'/'+segments[0]+'/':'/';document.querySelectorAll('[data-home]').forEach(a=>a.href=base);document.querySelectorAll('[data-menu]').forEach(a=>a.href=base+'{MENU_URL.lstrip("/")}');}})();</script></body></html>'''
 (OUT/'404.html').write_text(notfound,encoding='utf-8')
 (OUT/'robots.txt').write_text('User-agent: *\nAllow: /\n'+('Sitemap: '+BASE+'sitemap.xml\n' if PRODUCTION else '# Vorschau: HTML-Seiten enthalten noindex.\n'),encoding='utf-8')
-urls=['','speisekarte.html','kontakt.html'] if PRODUCTION else []
+urls=['','speisekarte','kontakt'] if PRODUCTION else []
 (OUT/'sitemap.xml').write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+''.join(f'<url><loc>{BASE}{u}</loc></url>' for u in urls)+'</urlset>',encoding='utf-8')
 # Apache-/LiteSpeed-Konfiguration fuer Hostinger. Wird nur im Produktionsmodus
 # geschrieben; die GitHub-Pages-Vorschau laeuft nicht auf Apache und braucht sie nicht.
@@ -246,15 +257,33 @@ ErrorDocument 404 /404.html
   RewriteCond %{THE_REQUEST} \\s/+(([^\\s?]*/)?)index\\.html[\\s?] [NC]
   RewriteRule ^ https://kaya-doener-himmelstadt.de/%1 [R=301,L,NE]
 
-  # 2) http -> https, zugleich ohne www.
+  # 2) Alte Adressen mit .html -> saubere Adresse, z. B. /kontakt.html -> /kontakt.
+  #    Ebenfalls ueber THE_REQUEST, damit die interne Umschreibung (6) keine
+  #    Schleife ausloest. Die Fehlerseite 404.html bleibt unberuehrt.
+  RewriteCond %{THE_REQUEST} \\s/+([^\\s?/]+)\\.html[\\s?] [NC]
+  RewriteCond %1 !^404$
+  RewriteRule ^ https://kaya-doener-himmelstadt.de/%1 [R=301,L,NE]
+
+  # 3) Schraegstrich am Ende entfernen, z. B. /kontakt/ -> /kontakt.
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^([^/]+)/$ https://kaya-doener-himmelstadt.de/$1 [R=301,L,NE]
+
+  # 4) http -> https, zugleich ohne www.
   #    Zweite Bedingung fuer den Fall, dass TLS vor dem Webserver endet.
   RewriteCond %{HTTPS} !=on
   RewriteCond %{HTTP:X-Forwarded-Proto} !=https
   RewriteRule ^ https://kaya-doener-himmelstadt.de%{REQUEST_URI} [R=301,L,NE]
 
-  # 3) www. -> ohne www. (wenn bereits https)
+  # 5) www. -> ohne www. (wenn bereits https)
   RewriteCond %{HTTP_HOST} ^www\\. [NC]
   RewriteRule ^ https://kaya-doener-himmelstadt.de%{REQUEST_URI} [R=301,L,NE]
+
+  # 6) Saubere Adresse intern auf die Datei abbilden: /kontakt liefert kontakt.html.
+  #    Kein Redirect, die Adresszeile bleibt /kontakt.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^([^/.]+)$ $1.html [L]
 </IfModule>
 """
 if PRODUCTION:

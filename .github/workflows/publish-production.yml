@@ -110,9 +110,11 @@ jobs:
           publish_dir="$RUNNER_TEMP/kaya-production"
           worktree_dir="$RUNNER_TEMP/kaya-production-branch"
 
+          neu=0
           if git fetch origin live; then
             git worktree add -B live "$worktree_dir" origin/live
           else
+            neu=1
             # Erster Lauf: live gibt es noch nicht, mit dem bisherigen
             # Stand von production starten, damit die Historie erhalten bleibt.
             git fetch origin production
@@ -124,7 +126,12 @@ jobs:
           cd "$worktree_dir"
           git add -A
           if git diff --cached --quiet; then
-            echo "live ist bereits aktuell."
+            if [ "$neu" = 0 ]; then
+              echo "live ist bereits aktuell."
+              exit 0
+            fi
+            # live gibt es noch nicht, Inhalt gleicht production: trotzdem anlegen.
+            git push origin HEAD:live
             exit 0
           fi
 

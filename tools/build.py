@@ -78,7 +78,7 @@ def header(current):
  </nav>'''
 
 def credit():
- return '<p class="site-credit">Mit ♥ erstellt von <a href="https://kernseite.com" title="Webdesign Agentur Würzburg" target="_blank" rel="noopener">KERNSEITE</a> aus Würzburg</p>'
+ return '<p class="site-credit">Mit ♥ erstellt von <a href="https://www.kernseite.com/" title="Webdesign Agentur Würzburg" target="_blank" rel="noopener">KERNSEITE</a> aus Würzburg</p>'
 
 def footer():
  return f'''<footer class="site-footer"><div class="wrap">

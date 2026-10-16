@@ -1,4 +1,4 @@
-name: Hostinger-Produktionsbranch aktualisieren
+name: Hostinger-Branch live aktualisieren
 
 on:
   push:
@@ -103,26 +103,32 @@ jobs:
           test ! -e "$publish_dir/tools"
           test ! -e "$publish_dir/unterlagen"
 
-      - name: Production-Branch aktualisieren
+      - name: Branch live aktualisieren
         shell: bash
         run: |
           set -euo pipefail
           publish_dir="$RUNNER_TEMP/kaya-production"
           worktree_dir="$RUNNER_TEMP/kaya-production-branch"
 
-          git fetch origin production
-          git worktree add -B production "$worktree_dir" origin/production
+          if git fetch origin live; then
+            git worktree add -B live "$worktree_dir" origin/live
+          else
+            # Erster Lauf: live gibt es noch nicht, mit dem bisherigen
+            # Stand von production starten, damit die Historie erhalten bleibt.
+            git fetch origin production
+            git worktree add -B live "$worktree_dir" origin/production
+          fi
           find "$worktree_dir" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf -- {} +
           cp -a "$publish_dir"/. "$worktree_dir"/
 
           cd "$worktree_dir"
           git add -A
           if git diff --cached --quiet; then
-            echo "Production ist bereits aktuell."
+            echo "live ist bereits aktuell."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Production-Build aus main ${GITHUB_SHA::7}"
-          git push origin HEAD:production
+          git commit -m "Live-Stand aus main ${GITHUB_SHA::7}"
+          git push origin HEAD:live

@@ -40,9 +40,12 @@ ErrorDocument 404 /404.html
 
   # 2) Alte Adressen mit .html -> saubere Adresse, z. B. /kontakt.html -> /kontakt.
   #    Ebenfalls ueber THE_REQUEST, damit die interne Umschreibung (6) keine
-  #    Schleife ausloest. Die Fehlerseite 404.html bleibt unberuehrt.
+  #    Schleife ausloest. Die Fehlerseite 404.html bleibt unberuehrt, ebenso die
+  #    Google-Search-Console-Bestaetigung google<id>.html: Google erwartet sie
+  #    unter genau dieser Adresse mit Status 200, ohne Umleitung.
   RewriteCond %{THE_REQUEST} \s/+([^\s?/]+)\.html[\s?] [NC]
   RewriteCond %1 !^404$
+  RewriteCond %1 !^google[0-9a-f]+$
   RewriteRule ^ https://kaya-doener-himmelstadt.de/%1 [R=301,L,NE]
 
   # 3) Schraegstrich am Ende entfernen, z. B. /kontakt/ -> /kontakt.

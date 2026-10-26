@@ -53,6 +53,7 @@ jobs:
           files=(
             .htaccess
             404.html
+            google5b496545c134483f.html
             index.html
             speisekarte.html
             kontakt.html
@@ -96,10 +97,11 @@ jobs:
             install -D -m 0644 "$file" "$publish_dir/$file"
           done
 
-          test "$(find "$publish_dir" -type f | wc -l)" -eq 39
+          test "$(find "$publish_dir" -type f | wc -l)" -eq 40
           grep -q 'content="index, follow, max-image-preview:large"' "$publish_dir/index.html"
           grep -q 'Hostinger International Limited' "$publish_dir/datenschutz.html"
           test -f "$publish_dir/.htaccess"
+          grep -qx 'google-site-verification: google5b496545c134483f.html' "$publish_dir/google5b496545c134483f.html"
           test ! -e "$publish_dir/tools"
           test ! -e "$publish_dir/unterlagen"
 

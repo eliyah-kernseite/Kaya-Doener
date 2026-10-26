@@ -42,7 +42,12 @@ class Page(HTMLParser):
    except ValueError as ex:errors.append(f'{self.path.name}: invalid JSON-LD {ex}')
    self.in_json=False
 
-pages={p.name:Page(p) for p in OUT.glob('*.html')}
+# Google-Search-Console-Bestaetigung: keine Seite, nur eine Textzeile.
+GOOGLE_VERIFICATION='google5b496545c134483f.html'
+gv=OUT/GOOGLE_VERIFICATION
+require(gv.is_file() and gv.read_text()=='google-site-verification: '+GOOGLE_VERIFICATION,
+        f'{GOOGLE_VERIFICATION}: missing or changed, Search Console needs it permanently')
+pages={p.name:Page(p) for p in OUT.glob('*.html') if not re.fullmatch(r'google[0-9a-f]+\.html',p.name)}
 PRODUCTION='noindex' not in (pages['index.html'].meta.get('robots') or '')
 HOME='/' if PRODUCTION else 'index.html'
 for name,page in pages.items():
@@ -154,6 +159,7 @@ if PRODUCTION:
     ('^www\\.','www to non-www redirect'),
     ('index\\.html[\\s?]','index.html to slash redirect'),
     ('\\.html[\\s?] [NC]\n  RewriteCond %1 !^404$','.html to clean URL redirect'),
+    ('RewriteCond %1 !^google[0-9a-f]+$','Search Console file exempt from redirect'),
     ('RewriteCond %{REQUEST_FILENAME}.html -f','clean URL to .html file mapping'),
     ('R=301','permanent redirects')]:
    require(needle in h,f'.htaccess is missing {label}')

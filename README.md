@@ -47,7 +47,7 @@ Eine Gesamtansicht liegt unter `unterlagen/KAYA-Logo-Uebersicht.png`. Die Regeln
 ### Branches und Hostinger
 
 - `main` ist der vollständige Arbeitsstand mit Generator, Prüfskripten, Unterlagen, Logo-Varianten und der GitHub-Pages-Vorschau.
-- `live` enthält ausschließlich die 39 Dateien, die Hostinger tatsächlich ausliefern soll. Der Branch enthält keine Projektunterlagen, Tests, Originalfotos oder ungenutzten Logo-Varianten und darf nicht direkt bearbeitet werden.
+- `live` enthält ausschließlich die 40 Dateien, die Hostinger tatsächlich ausliefern soll. Der Branch enthält keine Projektunterlagen, Tests, Originalfotos oder ungenutzten Logo-Varianten und darf nicht direkt bearbeitet werden.
 - Jeder Push auf `main` erzeugt und prüft über `.github/workflows/publish-production.yml` automatisch die Hostinger-Fassung und aktualisiert anschließend `live`.
 
 In Hostinger unter **Erweitert → Git** dieses Repository, den Branch **`live`** und als Ziel das Dokumentenverzeichnis der Domain – üblicherweise **`public_html`** – auswählen. Nachdem die GitHub-Aktion erfolgreich abgeschlossen ist, in hPanel **Bereitstellen** ausführen. Vor der ersten Bereitstellung den bisherigen Inhalt von `public_html` sichern und eine dort vorhandene `.htaccess` mit der Produktionsfassung abgleichen.

@@ -8,6 +8,18 @@
       {"name":"Lahmacun mit Fleisch","description":"Türkischer Flammkuchen, gerollt mit Fleisch, Salat und Soße","price":"8,50"},
       {"name":"Lahmacun mit Salat","description":"Türkischer Flammkuchen, gerollt mit frischem Salat","price":"7,80"}
     ]},
+    {"id":"pizza","title":"Pizza","intro":"Frisch aus dem Ofen. Vom Klassiker bis zur Pizza mit Drehspießfleisch.","items":[
+      {"name": "Margherita", "description": "", "price": "10,00", "codes": "A1, G"},
+      {"name": "Salami", "description": "", "price": "11,00", "codes": "A1, G, 2, 4"},
+      {"name": "Funghi", "description": "", "price": "11,00", "codes": "A1, G"},
+      {"name": "Schinken", "description": "", "price": "11,00", "codes": "A1, G, 2, 4"},
+      {"name": "Peperoni-Salami", "description": "", "price": "12,00", "codes": "A1, G, 2, 4"},
+      {"name": "Hawaii", "description": "", "price": "12,00", "codes": "A1, G, 2, 4"},
+      {"name": "Thunfisch", "description": "", "price": "12,00", "codes": "A1, G, D"},
+      {"name": "Drehspieß", "description": "", "price": "12,00", "codes": "A1, G, 2, 4, J"},
+      {"name": "Vegetarisch", "description": "", "price": "13,50", "codes": "A1, G"},
+      {"name": "Spezial", "description": "", "price": "13,50", "codes": "A1, G, 2, 4"}
+    ]},
     {"id":"teller","title":"Teller & Boxen","intro":"Für den großen Hunger oder direkt zum Mitnehmen.","items":[
       {"name":"Drehspießteller","description":"Mit Pommes und Salat","prices":[["klein","12,90"],["groß","13,90"]]},
       {"name":"Drehspießbox","description":"To-go-Box mit Beilage und Soße","price":"8,50"}
